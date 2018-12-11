@@ -1,0 +1,82 @@
+Table: bus
+----------------+--------------+------+-----+---------+---------
+ Field          | Type         | Null | Key | Default | Remarks 
+----------------+--------------+------+-----+---------+---------
+ id             | INT(10)      | NO   | PRI |         |         
+ imei           | VARCHAR(32)  | NO   |     |         | 设备唯一标识符 
+ last_ping_time | DATETIME(19) | YES  |     |         | 最后一次通信时间
+ plate          | VARCHAR(16)  | YES  |     |         | 公交车车牌   
+ group_id       | INT(10)      | YES  |     |         | 公交车路数ID 
+----------------+--------------+------+-----+---------+---------
+
+Table: bus_flow
+-------------+---------+------+-----+---------+---------
+ Field       | Type    | Null | Key | Default | Remarks 
+-------------+---------+------+-----+---------+---------
+ id          | INT(10) | NO   | PRI |         |         
+ location_id | INT(10) | YES  |     |         | 人流包定位信息 
+ income_num  | INT(10) | YES  |     |         |         
+ outcome_num | INT(10) | YES  |     |         |         
+ sum_num     | INT(10) | YES  |     |         |         
+ bus_id      | INT(10) | YES  |     |         |         
+-------------+---------+------+-----+---------+---------
+
+Table: bus_group
+-------+-------------+------+-----+---------+---------
+ Field | Type        | Null | Key | Default | Remarks 
+-------+-------------+------+-----+---------+---------
+ id    | INT(10)     | NO   | PRI |         | 公交车路数ID 
+ name  | VARCHAR(64) | NO   |     |         | 公交车路数名  
+-------+-------------+------+-----+---------+---------
+
+Table: location
+------------------+--------------+------+-----+---------+---------
+ Field            | Type         | Null | Key | Default | Remarks 
+------------------+--------------+------+-----+---------+---------
+ id               | INT(10)      | NO   | PRI |         | 定位记录ID  
+ bus_id           | INT(10)      | NO   |     |         | 设备唯一标识符 
+ recv_time        | DATETIME(19) | NO   |     |         |         
+ located_time     | DATETIME(19) | NO   |     |         | 定位时间    
+ location_type_id | INT(10)      | NO   |     |         | 定位类型ID  
+ report_mode_id   | INT(10)      | NO   |     |         |         
+ latitude         | VARCHAR(20)  | NO   |     |         | 纬度      
+ longitude        | VARCHAR(20)  | NO   |     |         | 经度      
+ speed            | INT(10)      | NO   |     |         | 速度      
+ address          | VARCHAR(200) | NO   |     |         | 地址      
+------------------+--------------+------+-----+---------+---------
+
+Table: location_type
+-------+-------------+------+-----+---------+---------
+ Field | Type        | Null | Key | Default | Remarks 
+-------+-------------+------+-----+---------+---------
+ id    | INT(10)     | NO   | PRI |         | 定位类型ID  
+ name  | VARCHAR(64) | YES  |     |         | 定位类型名   
+-------+-------------+------+-----+---------+---------
+
+Table: report_mode
+-------+-------------+------+-----+---------+---------
+ Field | Type        | Null | Key | Default | Remarks 
+-------+-------------+------+-----+---------+---------
+ id    | INT(10)     | NO   | PRI |         |         
+ name  | VARCHAR(24) | YES  |     |         |         
+-------+-------------+------+-----+---------+---------
+
+Table: station
+-----------+-------------+------+-----+---------+---------
+ Field     | Type        | Null | Key | Default | Remarks 
+-----------+-------------+------+-----+---------+---------
+ id        | INT(10)     | NO   | PRI |         | 站台ID    
+ name      | VARCHAR(64) | YES  |     |         | 站台名     
+ latitude  | VARCHAR(20) | YES  |     |         | 纬度      
+ longitude | VARCHAR(20) | YES  |     |         | 经度      
+-----------+-------------+------+-----+---------+---------
+
+Table: station_group_bind
+------------+---------+------+-----+---------+---------
+ Field      | Type    | Null | Key | Default | Remarks 
+------------+---------+------+-----+---------+---------
+ id         | INT(10) | NO   | PRI |         |         
+ station_id | INT(10) | NO   |     |         |         
+ group_id   | INT(10) | NO   |     |         |         
+------------+---------+------+-----+---------+---------
+
