@@ -5,10 +5,16 @@ Vue.use(Vuex)
 
 export default new Vuex.Store({
   state: {
-
+    busData: {},
+    autoRefresh: true
   },
   mutations: {
-
+    setBusData (state, data) {
+      state.busData = {...data}
+    },
+    setAutoRefreshState (state, data) {
+      state.autoRefresh = data
+    }
   },
   actions: {
 
