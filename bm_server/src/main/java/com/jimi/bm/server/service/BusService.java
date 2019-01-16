@@ -23,10 +23,10 @@ public class BusService {
 
 	private static SelectService selectService = Enhancer.enhance(SelectService.class);
 
-	private static String SELECT_LOCATION_INFO = "SELECT a.*, bus_flow.id AS BusFlow_Id, bus_flow.income_num AS BusFlow_IncomeNum, bus_flow.outcome_num AS BusFlow_OutcomeNum, bus_flow.sum_num AS BusFlow_SumNum FROM (SELECT location.recv_time AS Location_RecvTime,location.located_time AS Location_LocatedTime,location.report_mode_id AS Location_ReportModeId,location.latitude AS Location_Latitude,location.longitude AS Location_Longitude,location.speed AS Location_Speed,location.address AS Location_Address,location.id AS Location_Id,bus.id AS Bus_Id,bus.imei AS Bus_Imei,bus.last_ping_time AS Bus_LastPingTime,bus.plate AS Bus_Plate,bus_group.name AS BusGroup_Name,bus_group.id AS BusGroup_Id,location_type.name AS LocationType_Name,location_type.id AS LocationType_Id FROM location JOIN bus JOIN bus_group JOIN location_type ON bus.group_id = bus_group.id AND location.bus_id = bus.id AND location.location_type_id = location_type.id  WHERE bus.imei = ? AND (location.located_time BETWEEN ? AND ?)) AS a LEFT JOIN bus_flow ON a.Location_Id = bus_flow.location_id ORDER BY a.Location_LocatedTime DESC";
+	private static String SELECT_LOCATION_INFO = "SELECT a.*, bus_flow.id AS BusFlow_Id, bus_flow.income_num AS BusFlow_IncomeNum, bus_flow.outcome_num AS BusFlow_OutcomeNum, bus_flow.sum_num AS BusFlow_SumNum, bus_flow.gate_num AS BusFlow_GateNum FROM (SELECT location.recv_time AS Location_RecvTime,location.located_time AS Location_LocatedTime,location.report_mode_id AS Location_ReportModeId,location.latitude AS Location_Latitude,location.longitude AS Location_Longitude,location.speed AS Location_Speed,location.amap_longitude AS Location_AmapLongitude, location.amap_latitude AS Location_AmapLatitude, location.amap_address AS Location_AmapAddress,location.id AS Location_Id,bus.id AS Bus_Id,bus.imei AS Bus_Imei,bus.last_ping_time AS Bus_LastPingTime,bus.plate AS Bus_Plate,bus_group.name AS BusGroup_Name,bus_group.id AS BusGroup_Id,location_type.name AS LocationType_Name,location_type.id AS LocationType_Id FROM location JOIN bus JOIN bus_group JOIN location_type ON bus.group_id = bus_group.id AND location.bus_id = bus.id AND location.location_type_id = location_type.id  WHERE bus.imei = ? AND (location.located_time BETWEEN ? AND ?)) AS a LEFT JOIN bus_flow ON a.Location_Id = bus_flow.location_id";
+	private static String ORDER_BY_TIME = " ORDER BY a.Location_LocatedTime DESC";
 
-
-	public ResultUtil select(Integer groupId) {
+	public ResultUtil getGroupDetails(Integer groupId) {
 		String[] tables = {"bus", "bus_group"};
 		String[] refers = {"bus.group_id = bus_group.id"};
 		String[] discards = {"bus.group_id"};
@@ -54,7 +54,7 @@ public class BusService {
 
 	public ResultUtil getDeviceTrack(String imei, String beginTime, String endTime, Integer pageNo, Integer pageSize) {
 		SqlPara sql = new SqlPara();
-		sql.setSql(SELECT_LOCATION_INFO);
+		sql.setSql(SELECT_LOCATION_INFO + ORDER_BY_TIME);
 		sql.addPara(imei);
 		sql.addPara(beginTime);
 		sql.addPara(endTime);
@@ -66,9 +66,24 @@ public class BusService {
 	}
 
 
+	public ResultUtil getIOStats(String imei, String beginTime, String endTime) {
+		SqlPara sql = new SqlPara();
+		String whereCondition = " WHERE bus_flow.id IS NOT NULL ";
+		sql.setSql(SELECT_LOCATION_INFO + whereCondition + ORDER_BY_TIME);
+		sql.addPara(imei);
+		sql.addPara(beginTime);
+		sql.addPara(endTime);
+		Page<Record> pageRecord = Db.paginate(1, PropKit.use("config.properties").getInt("defaultPageSize"), sql);
+		List<BusAndLoactionVO> busAndLoactionVOs = BusAndLoactionVO.fillList(pageRecord.getList());
+		PageUtil<BusAndLoactionVO> pageUtil = new PageUtil<BusAndLoactionVO>();
+		pageUtil.fill(pageRecord, busAndLoactionVOs);
+		return ResultUtil.succeed(pageUtil);
+	}
+	
+	
 	public void exportReport(String imei, String beginTime, String endTime, String fileName, OutputStream output) throws IOException {
 		SqlPara sql = new SqlPara();
-		sql.setSql(SELECT_LOCATION_INFO);
+		sql.setSql(SELECT_LOCATION_INFO + ORDER_BY_TIME);
 		sql.addPara(imei);
 		sql.addPara(beginTime);
 		sql.addPara(endTime);

@@ -53,4 +53,14 @@ public abstract class BaseStation<M extends BaseStation<M>> extends Model<M> imp
 		return getStr("longitude");
 	}
 
+	
+	public M setType(java.lang.Integer type) {
+		set("type", type);
+		return (M) this;
+	}
+
+
+	public java.lang.Integer getType() {
+		return getInt("type");
+	}
 }

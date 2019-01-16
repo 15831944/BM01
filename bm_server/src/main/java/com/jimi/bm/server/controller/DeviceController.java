@@ -33,11 +33,11 @@ public class DeviceController extends Controller {
 	}
 
 
-	public void select(Integer groupId) {
+	public void getGroupDetails(Integer groupId) {
 		if (groupId == null) {
 			throw new ParameterException("GroupId 不能为空");
 		}
-		ResultUtil result = busService.select(groupId);
+		ResultUtil result = busService.getGroupDetails(groupId);
 		renderJson(result);
 	}
 
@@ -51,6 +51,21 @@ public class DeviceController extends Controller {
 	}
 
 
+	public void getIOStats(String imei, String beginTime, String endTime) {
+		if (imei == null) {
+			throw new ParameterException("IMEI 不能为空");
+		}
+		if (!isDate(beginTime) || !isDate(endTime)) {
+			throw new ParameterException("日期格式不正确");
+		}
+		if (!checkDateRange(beginTime, endTime, Calendar.HOUR_OF_DAY, 24)) {
+			throw new ParameterException("最多取一天内的客流数据，范围不正确");
+		}
+		ResultUtil result = busService.getIOStats(imei, beginTime, endTime);
+		renderJson(result);
+	}
+
+
 	public void getDeviceTrack(String imei, String beginTime, String endTime, Integer pageNo, Integer pageSize) {
 		if (imei == null || beginTime == null || endTime == null) {
 			throw new ParameterException("参数不能为空");
@@ -58,7 +73,7 @@ public class DeviceController extends Controller {
 		if (!isDate(beginTime) || !isDate(endTime)) {
 			throw new ParameterException("日期格式不正确");
 		}
-		if (!checkDateRange(beginTime, endTime, 6)) {
+		if (!checkDateRange(beginTime, endTime, Calendar.MONTH, 6)) {
 			throw new ParameterException("日期范围不正确");
 		}
 		if ((pageNo != null && pageSize == null) || (pageNo == null && pageSize != null)) {
@@ -87,15 +102,15 @@ public class DeviceController extends Controller {
 	}
 
 
-	private boolean checkDateRange(String beginTime, String endTime, Integer range) {
+	private boolean checkDateRange(String beginTime, String endTime, Integer timeUnit,Integer range) {
 		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		Calendar calendar = Calendar.getInstance();
 		try {
 			Date time1 = format.parse(beginTime);
 			Date time2 = format.parse(endTime);
 			calendar.setTime(time1);
-			int month = calendar.get(Calendar.MONTH) + range;
-			calendar.set(Calendar.MONTH, month);
+			int timeRange = calendar.get(timeUnit) + range;
+			calendar.set(timeUnit, timeRange);
 			int flag1 = calendar.getTime().compareTo(time2);
 			int flag2 = time1.compareTo(time2);
 			if (flag1 >= 0 && flag2 <= 0) {
@@ -117,7 +132,7 @@ public class DeviceController extends Controller {
 		if (!isDate(beginTime) || !isDate(endTime)) {
 			throw new ParameterException("日期格式不正确");
 		}
-		if (!checkDateRange(beginTime, endTime, 6)) {
+		if (!checkDateRange(beginTime, endTime, Calendar.MONTH, 6)) {
 			throw new ParameterException("日期范围不正确");
 		}
 		OutputStream output = null;

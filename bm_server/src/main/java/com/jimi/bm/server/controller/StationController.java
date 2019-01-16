@@ -12,8 +12,8 @@ public class StationController extends Controller {
 	private StationService stationService;
 
 
-	public void getStations() {
-		ResultUtil result = stationService.getStations();
+	public void getStations(Integer groupId) {
+		ResultUtil result = stationService.getStations(groupId);
 		renderJson(result);
 	}
 }

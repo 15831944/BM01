@@ -15,11 +15,12 @@ public class StationService extends SelectService {
 	private static SelectService selectService = Enhancer.enhance(SelectService.class);
 
 
-	public ResultUtil getStations() {
+	public ResultUtil getStations(Integer groupId) {
 		String[] tables = {"station", "bus_group", "station_group_bind"};
 		String[] refers = {"station.id = station_group_bind.station_id", "bus_group.id = station_group_bind.group_id"};
 		String[] discard = {"station_group_bind.station_id", "station_group_bind.group_id"};
-		Page<Record> pageRecord = selectService.select(tables, refers, null, null, null, null, null, discard);
+		String filter = "bus_group.id #=# " + groupId;
+		Page<Record> pageRecord = selectService.select(tables, refers, null, null, null, null, filter, discard);
 		List<StationVO> stationVOs = StationVO.fillList(pageRecord.getList());
 		return ResultUtil.succeed(stationVOs);
 	}

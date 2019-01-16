@@ -25,6 +25,8 @@ public class BusAndLoactionVO {
 	private Date communicatedTime;
 
 	private Integer speed;
+	
+	private String direction;
 
 	private String statusString;
 
@@ -44,6 +46,8 @@ public class BusAndLoactionVO {
 
 	private Date recvTime;
 
+	private Integer gateNum;
+	
 	private Integer upCount;
 
 	private Integer downCount;
@@ -54,6 +58,9 @@ public class BusAndLoactionVO {
 	
 	private Double lat;
 	
+	private Double aLng;
+	
+	private Double aLat;
 	
 	public Integer getId() {
 		return id;
@@ -283,6 +290,48 @@ public class BusAndLoactionVO {
 	}
 
 
+	
+	public String getDirection() {
+		return direction;
+	}
+
+
+	
+	public void setDirection(String direction) {
+		this.direction = direction;
+	}
+
+
+	public Integer getGateNum() {
+		return gateNum;
+	}
+
+
+	public void setGateNum(Integer gateNum) {
+		this.gateNum = gateNum;
+	}
+
+	
+	public Double getaLng() {
+		return aLng;
+	}
+
+	
+	public void setaLng(Double aLng) {
+		this.aLng = aLng;
+	}
+
+	
+	public Double getaLat() {
+		return aLat;
+	}
+
+	
+	public void setaLat(Double aLat) {
+		this.aLat = aLat;
+	}
+
+
 	public static List<BusAndLoactionVO> fillList(List<Record> records) {
 		Calendar calendar = Calendar.getInstance();
 		List<BusAndLoactionVO> busAndLoactionVOs = new ArrayList<BusAndLoactionVO>();
@@ -294,7 +343,7 @@ public class BusAndLoactionVO {
 			busAndLoactionVO.setGroupId(record.getInt("BusGroup_Id"));
 			busAndLoactionVO.setGroupName(record.getStr("BusGroup_Name"));
 			busAndLoactionVO.setSpeed(record.getInt("Location_Speed"));
-			busAndLoactionVO.setLocation(record.getStr("Location_Address"));
+			busAndLoactionVO.setLocation(record.getStr("Location_AmapAddress"));
 			busAndLoactionVO.setLocationType(record.getInt("LocationType_Id"));
 			busAndLoactionVO.setLocationTypeString(record.getStr("LocationType_Name"));
 			busAndLoactionVO.setLocatedTime(record.getDate("Location_LocatedTime"));
@@ -303,6 +352,9 @@ public class BusAndLoactionVO {
 			busAndLoactionVO.setRecvTime(record.getDate("Location_RecvTime"));
 			busAndLoactionVO.setLat(Double.valueOf(record.getStr("Location_Latitude")));
 			busAndLoactionVO.setLng(Double.valueOf(record.getStr("Location_Longitude")));
+			busAndLoactionVO.setDirection(record.getStr("Location_Course"));
+			busAndLoactionVO.setaLat(Double.valueOf(record.getStr("Location_AmapLatitude")));
+			busAndLoactionVO.setaLng(Double.valueOf(record.getStr("Location_AmapLongitude")));
 			if (record.getInt("BusFlow_Id") == null) {
 				busAndLoactionVO.setType("normal");
 			} else {
@@ -310,6 +362,7 @@ public class BusAndLoactionVO {
 				busAndLoactionVO.setUpCount(record.getInt("BusFlow_IncomeNum"));
 				busAndLoactionVO.setDownCount(record.getInt("BusFlow_OutcomeNum"));
 				busAndLoactionVO.setTotal(record.getInt("BusFlow_SumNum"));
+				busAndLoactionVO.setGateNum(record.getInt("BusFlow_GateNum"));
 			}
 			Date time = record.getDate("Bus_LastPingTime");
 			busAndLoactionVO.setCommunicatedTime(time);
@@ -334,4 +387,7 @@ public class BusAndLoactionVO {
 		}
 		return busAndLoactionVOs;
 	}
+	
+	
+	
 }

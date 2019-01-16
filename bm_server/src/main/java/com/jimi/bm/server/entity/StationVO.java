@@ -18,6 +18,8 @@ public class StationVO {
 
 	private double lng;
 
+	private Integer type;
+	
 	private List<BusGroupVO> list;
 
 
@@ -70,6 +72,16 @@ public class StationVO {
 		this.list = list;
 	}
 
+	
+	public Integer getType() {
+		return type;
+	}
+
+	
+	public void setType(Integer type) {
+		this.type = type;
+	}
+
 
 	public static List<StationVO> fillList(List<Record> records) {
 		Map<Integer, StationVO> map = new HashMap<>();
@@ -85,6 +97,7 @@ public class StationVO {
 				stationVO.setStationName(record.getStr("Station_Name"));
 				stationVO.setLat(Double.valueOf(record.getStr("Station_Latitude")));
 				stationVO.setLng(Double.valueOf(record.getStr("Station_Longitude")));
+				stationVO.setType(record.getInt("Station_Type"));
 				List<BusGroupVO> busGroupVOs = new ArrayList<>();
 				stationVO.setList(busGroupVOs);
 				BusGroupVO busGroupVO = new BusGroupVO();

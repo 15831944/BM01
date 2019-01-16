@@ -109,6 +109,17 @@ public abstract class BaseLocation<M extends BaseLocation<M>> extends Model<M> i
 	}
 
 
+	public M setDirection(java.lang.String direction) {
+		set("direction", direction);
+		return (M) this;
+	}
+
+
+	public java.lang.String getDirection(){
+		return getStr("direction");
+	}
+
+
 	public M setAddress(java.lang.String address) {
 		set("address", address);
 		return (M) this;
@@ -117,6 +128,39 @@ public abstract class BaseLocation<M extends BaseLocation<M>> extends Model<M> i
 
 	public java.lang.String getAddress() {
 		return getStr("address");
+	}
+	
+	
+	public M setAmapLatitude(java.lang.String amapLatitude) {
+		set("amap_latitude", amapLatitude);
+		return (M) this;
+	}
+
+
+	public java.lang.String gettAmapLatitude() {
+		return getStr("amap_latitude");
+	}
+
+
+	public M setAmapLongitude(java.lang.String amapLongitude) {
+		set("amap_longitude", amapLongitude);
+		return (M) this;
+	}
+
+
+	public java.lang.String getAmapLongitude() {
+		return getStr("amap_longitude");
+	}
+	
+	
+	public M setAmapAddress(java.lang.String amapAddress) {
+		set("amap_address", amapAddress);
+		return (M) this;
+	}
+
+
+	public java.lang.String getAmapAddress() {
+		return getStr("amap_address");
 	}
 
 }

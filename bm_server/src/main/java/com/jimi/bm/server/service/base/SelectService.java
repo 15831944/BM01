@@ -168,7 +168,7 @@ public class SelectService {
 				}
 				String key = whereUnit.substring(0, operatorStartIndex);
 				String value = whereUnit.substring(operatorStartIndex + operationLength, whereUnit.length());
-				sql.append(key + operator.toString() + "? AND ");
+				sql.append(key + " " +operator.toString() + " ? AND ");
 				if (OPERATORS[i].equals("#like#")) {
 					questionValues.add("%" + value + "%");
 				} else {
