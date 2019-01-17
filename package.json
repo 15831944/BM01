@@ -1,6 +1,6 @@
 {
   "name": "BusMonitor",
-  "version": "1.0.0",
+  "version": "0.2.0",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
@@ -17,6 +17,7 @@
     "@vue/cli-service": "^3.0.1",
     "axios": "^0.18.0",
     "babel-plugin-component": "^1.1.1",
+    "chart.js": "^2.7.3",
     "vue-cli-plugin-element": "^1.0.0",
     "vue-template-compiler": "^2.5.17"
   },

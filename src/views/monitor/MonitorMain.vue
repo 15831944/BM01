@@ -3,24 +3,20 @@
     <el-aside width="186px">
       <div id="group-container">
         <el-menu
-            :collapse-transition='false'
-            @select="selectItem"
-            @open="expandGroup">
+            :default-openeds="['menu']"
+          :router="true">
           <el-submenu
-              :index="item.groupId.toString()"
-              :key="item.groupId"
-              v-for="item in groupListData"
-              v-if="groupListData.length > 0"
+              index="menu"
               class="menu-title"
           >
             <template slot="title">
               <i class="el-icon-t-sign"></i>
-              <span>{{item.groupName}} ({{item.count}})</span>
+              <span>测试线路(1)</span>
             </template>
-            <el-menu-item :key="item.groupId + menuItem.imei" :index="(item.groupId + ':' + menuItem.imei).toString()"
-                          v-for="menuItem in groupItemObject['item' + item.groupId]">
-              <span class="status-circle" :class="getStatusColor(menuItem.status)"></span>
-              <span class="num-plate">{{menuItem.numPlate}}</span>
+            <el-menu-item
+              index="/monitor/details">
+              <span class="status-circle" :class="getStatusColor(0)"></span>
+              <span class="num-plate">粤L12345</span>
             </el-menu-item>
           </el-submenu>
         </el-menu>
@@ -43,7 +39,7 @@
     <el-main>
       <router-view/>
       <!--<el-footer class="page-footer" height="40px">-->
-        <!--<copyright/>-->
+      <!--<copyright/>-->
       <!--</el-footer>-->
     </el-main>
   </el-container>
@@ -53,9 +49,8 @@
   import Copyright from "../../components/Copyright";
   import {getGroupsUrl, getGroupDetailsUrl, getRealtimeDataUrl} from "../../config/globalUrl";
   import {axiosPost} from "../../utils/fetchData";
-
   export default {
-    name: "PositionMain",
+    name: "MonitorMain",
     components: {
       Copyright
     },
@@ -74,19 +69,6 @@
         isPending: false
       }
     },
-    created() {
-      axiosPost({url: getGroupsUrl}).then(res => {
-        this.groupListData = res.data.data;
-        //初始化一遍分组的数据结构
-        for (let item in this.groupListData) {
-          this.$set(this.groupItemObject, 'item' + (eval(item) + 1).toString(), [])
-        }
-      }).catch(err => {
-        this.$alertWarning('获取分组信息失败，请刷新重试')
-      })
-    },
-    mounted() {
-    },
     methods: {
 
       getStatusColor: function (status) {
@@ -99,72 +81,7 @@
             return 'red';
         }
       },
-      expandGroup: function (index) {
-        axiosPost({
-          url: getGroupDetailsUrl,
-          data: {
-            groupId: index
-          }
-        }).then(res => {
-          //将返回数组内的组id作为对象的属性名
-          this.$set(this.groupItemObject, "item" + index, JSON.parse(JSON.stringify(res.data.data)));
-        }).catch(err => {
-          this.$alertWarning(err.response.data)
-        })
-      },
-      selectItem: function (val) {
-        //index format: groupid:imei
-        this.$openFSLoading();
-        let groupId = val.split(':')[0];
-        let imei = val.split(':')[1];
-        this.getRealtimeData(imei, groupId)
-      },
-      getRealtimeData: function (imei, groupId) {
-          if (!this.isPending) {
-            this.isPending = true;
-            axiosPost({
-              url: getRealtimeDataUrl,
-              data: {
-                imei: imei
-              }
-            }).then(res => {
-              if (res.data.result === 200) {
-                AMap.convertFrom((res.data.data.lng + ',' + res.data.data.lat), "gps", (status, result) =>{
 
-                  if (status === "complete") {
-                    res.data.data.lng = result.locations[0].P;
-                    res.data.data.lat = result.locations[0].O;
-                  }
-                  let busData = JSON.parse(JSON.stringify(res.data.data));
-                  if (busData) {
-                    this.isPending = false;
-                    this.$store.commit('setBusData', busData);
-                    this.$router.push('_blank');
-                    this.$router.replace({
-                      path: '/position/details',
-                      query: {
-                        'id': groupId,
-                        'imei': imei
-                      }
-                    })
-                  }
-                });
-
-              } else {
-                this.$alertWarning(res.response.data);
-                this.$closeFSLoading();
-                this.isPending = false;
-                this.$router.replace('/position');
-              }
-              this.isPending = false;
-            }).catch(err => {
-              this.isPending = false;
-              this.$alertWarning(err);
-              this.$closeFSLoading();
-              this.$router.replace('/position');
-            })
-          }
-      }
     }
   }
 </script>

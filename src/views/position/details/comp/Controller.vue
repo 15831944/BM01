@@ -25,10 +25,10 @@
       <div class="details-block" style="box-sizing: border-box; min-height: 135px;">
         <div class="details-info">
           <span class="details-text">●定位方式: {{busData.locationTypeString}}</span>
-          <span class="details-text">●最后定位时间: {{busData.locatedTime}}</span>
+          <span class="details-text">●定位时间: {{busData.locatedTime}}</span>
           <br/>
           <!--<span class="details-text">●最后通讯时间: {{busData.lastCommunicationTime}}</span>-->
-          <span class="details-text">●最新位置: {{busData.location}}</span>
+          <span class="details-text">●位置: {{busData.location}}</span>
         </div>
         <el-row class="details-controller" type="flex" align="bottom" style="flex-wrap: wrap; width: 100%;"
                 v-if="pageType === 'track'">
@@ -57,9 +57,13 @@
             </el-button>
           </el-col>
 
+          <el-col style="width: unset; margin: 0 5px;">
+            <el-button size="mini" @click="addDebugPoint">debug</el-button>
+          </el-col>
+
           <!--<el-col style="max-width: 360px; margin: 0 10px;" v-if="timeRange !== '' || this.timeRange !== null">-->
-            <!--<span class="details-title" style="margin: 10px 0 0">{{currentTime}}</span>-->
-            <!--<el-slider v-model="sliderValue" style="height: 34px;"></el-slider>-->
+          <!--<span class="details-title" style="margin: 10px 0 0">{{currentTime}}</span>-->
+          <!--<el-slider v-model="sliderValue" style="height: 34px;"></el-slider>-->
           <!--</el-col>-->
         </el-row>
         <el-row class="details-controller" type="flex" align="middle" style="height: 60px;"
@@ -127,6 +131,14 @@
         timeRange: '',
         pickerOptions: {
           shortcuts: [{
+            text: '最近12小时',
+            onClick(picker) {
+              const end = new Date();
+              const start = new Date();
+              start.setTime(start.getTime() - 3600 * 1000 * 12);
+              picker.$emit('pick', [start, end]);
+            }
+          }, {
             text: '最近一天',
             onClick(picker) {
               const end = new Date();
@@ -153,7 +165,6 @@
           }]
         },
         sliderValue: 0,
-        currentTime: '2018-12-6 19:41:11',
         isPending: false,
         isPlaying: false
       }
@@ -215,74 +226,103 @@
         this.getTrackData(this.busData.imei.toString())
       },
       getRealtimeData: function (imei) {
-          if (!this.isPending) {
-            this.isPending = true;
-            axiosPost({
-              url: getRealtimeDataUrl,
-              data: {
-                imei: imei
-              }
-            }).then(res => {
-              if (res.data.result === 200) {
-                this.$store.commit('setBusData', res.data.data);
-                eventBus.$emit('locateBus', this.refreshTime)
-              } else {
-                this.$alertWarning(res.response.data);
-              }
-              this.isPending = false;
-            }).catch(err => {
-              this.isPending = false;
-              this.$alertWarning(err.response.statusText);
-            })
-          }
+        if (!this.isPending) {
+          this.isPending = true;
+          axiosPost({
+            url: getRealtimeDataUrl,
+            data: {
+              imei: imei
+            }
+          }).then(res => {
+            if (res.data.result === 200) {
+              // AMap.convertFrom((res.data.data.lng + ',' + res.data.data.lat), "gps", (status, result) => {
+              //
+              //   if (status === "complete") {
+              //     res.data.data.lng = result.locations[0].P;
+              //     res.data.data.lat = result.locations[0].O;
+              //   }
+              //   this.$store.commit('setBusData', res.data.data);
+              //   eventBus.$emit('locateBus', this.refreshTime)
+              // });
+              this.$store.commit('setBusData', res.data.data);
+              eventBus.$emit('locateBus', this.refreshTime)
+            } else {
+              this.$alertWarning(res.response.data);
+            }
+            this.isPending = false;
+          }).catch(err => {
+            this.isPending = false;
+            this.$alertWarning(err.response.statusText);
+          })
+        }
       },
       getTrackData: function (imei) {
-          if (!this.isPending) {
-            this.isPending = true;
-            axiosPost({
-              url: getDeviceTrackUrl,
-              data: {
-                imei: imei,
-                beginTime: this.timeRange[0],
-                endTime: this.timeRange[1]
+        if (!this.isPending) {
+          this.isPending = true;
+          axiosPost({
+            url: getDeviceTrackUrl,
+            data: {
+              imei: imei,
+              beginTime: this.timeRange[0],
+              endTime: this.timeRange[1]
+            }
+          }).then(async res => {
+            if (res.data.result === 200) {
+              this.$openFSLoading();
+              let data = res.data.data;
+              if (data.list.length === 0) {
+                this.$alertInfo('所选日期内无数据');
+                this.isPending = false;
+                this.$closeFSLoading();
+                return
               }
-            }).then(res => {
-              if (res.data.result === 200) {
-                let data = res.data.data;
-                if (data.list.length === 0) {
-                  this.$alertInfo('所选日期内无数据');
-                  this.isPending = false;
-                  return
+
+              //最新一个定位点 + GPS修正
+              let firstPoint = JSON.parse(JSON.stringify(data.list[data.list.length - 1]));
+              // let obj = await this.locConverter(firstPoint.lng, firstPoint.lat);
+              // firstPoint.lng = obj.lng;
+              // firstPoint.lat = obj.lat;
+              this.$store.commit('setBusData', firstPoint);
+
+              //经纬度数组堆、靠站信息数组堆、GPS修正
+              let lnglat = [];
+              let parkinglist = [];
+              let tempParkingLnglat = [];
+              for (let i = 0; i < data.list.length; i++) {
+                lnglat.unshift([data.list[i].aLng, data.list[i].aLat]);
+                if (data.list[i].type === 'busStop') {
+                  // tempParkingLnglat.unshift([data.list[i].lng, data.list[i].lat]);
+                  parkinglist.unshift({
+                    time: data.list[i].locatedTime,
+                    downCount: data.list[i].downCount,
+                    upCount: data.list[i].upCount,
+                    total: data.list[i].total,
+                    lng: data.list[i].aLng,
+                    lat: data.list[i].aLat
+                  })
                 }
-                this.$store.commit('setBusData', data.list[data.list.length - 1]);
-                let lnglat = [];
-                let parkinglist = [];
-                for (let i = 0; i < data.list.length; i++) {
-                  lnglat.unshift([data.list[i].lng, data.list[i].lat]);
-                  if (data.list[i].type === 'busStop') {
-                    parkinglist.unshift({
-                      time: data.list[i].communicatedTime,
-                      downCount: data.list[i].downCount,
-                      upCount: data.list[i].upCount,
-                      total: data.list[i].total,
-                      lng: data.list[i].lng,
-                      lat: data.list[i].lat
-                    })
-                  }
-                }
-                eventBus.$emit('trackBus', [data.list, lnglat, parkinglist])
-              } else {
-                this.$alertWarning(err.response.data);
               }
-              this.isPending = false;
-            }).catch(err => {
-              this.isPending = false;
-              this.$alertWarning(err);
-            })
-          }
+              // tempParkingLnglat = await this.locConverterByGroup(tempParkingLnglat);
+              // for (let i = 0; i < tempParkingLnglat.length; i++) {
+              //   parkinglist[i].lng = tempParkingLnglat[i].P;
+              //   parkinglist[i].lat = tempParkingLnglat[i].O;
+              // }
+              //
+              // lnglat = await this.locConverterByGroup(lnglat);
+              eventBus.$emit('trackBus', [firstPoint, lnglat, parkinglist, data.list])
+            } else {
+              this.$alertWarning(err.response.data);
+            }
+            this.isPending = false;
+            this.$closeFSLoading();
+          }).catch(err => {
+            this.isPending = false;
+            this.$alertWarning(err);
+          })
+        }
 
       },
-      startTrack: function() {
+      startTrack: function () {
         eventBus.$emit('startTrack')
       },
       toggleAutoState: function (val) {
@@ -297,9 +337,42 @@
       refreshData: function () {
         eventBus.$emit('locateBus', this.refreshTime);
       },
-      dM: function () {
-        eventBus.$emit('destoryMap');
+      locConverter: function (lng, lat) {
+        return new Promise((resolve, reject) => {
+          AMap.convertFrom((lng + ',' + lat), "gps", (status, result) => {
+            if (status === "complete") {
+              resolve({
+                lng: result.locations[0].P,
+                lat: result.locations[0].O,
+              })
+            } else {
+              console.log(status);
+              console.log(result);
+              resolve({
+                lng: lng,
+                lat: lat,
+              })
+            }
+          });
+        });
+      },
+      locConverterByGroup: function (array) {
+        return new Promise((resolve, reject) => {
+          AMap.convertFrom(array, "gps", (status, result) => {
+            if (status === "complete") {
+              resolve(result.locations)
+            } else {
+              console.log(status);
+              console.log(result);
+              resolve(array)
+            }
+          });
+        });
+      },
+      addDebugPoint: function () {
+        eventBus.$emit('addDebugPoint')
       }
+
     }
   }
 </script>

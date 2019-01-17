@@ -43,31 +43,21 @@
     <el-main>
       <router-view/>
       <!--<el-footer class="page-footer" height="40px">-->
-        <!--<copyright/>-->
+      <!--<copyright/>-->
       <!--</el-footer>-->
     </el-main>
   </el-container>
 </template>
 
 <script>
-  import Copyright from "../../components/Copyright";
-  import {getGroupsUrl, getGroupDetailsUrl, getRealtimeDataUrl} from "../../config/globalUrl";
   import {axiosPost} from "../../utils/fetchData";
+  import {getIOStatsUrl, getGroupDetailsUrl, getGroupsUrl} from "../../config/globalUrl";
 
   export default {
-    name: "PositionMain",
-    components: {
-      Copyright
-    },
+    name: "StatsMain",
     data() {
       return {
-        /*data format:
-        * [{
-        *   groupId: '1',
-        *   groupName: '7路'
-        * }]
-        * */
-        //组信息
+
         groupListData: [],
         //组内项目
         groupItemObject: {},
@@ -84,8 +74,6 @@
       }).catch(err => {
         this.$alertWarning('获取分组信息失败，请刷新重试')
       })
-    },
-    mounted() {
     },
     methods: {
 
@@ -117,53 +105,17 @@
         this.$openFSLoading();
         let groupId = val.split(':')[0];
         let imei = val.split(':')[1];
-        this.getRealtimeData(imei, groupId)
+        this.showDetails(imei, groupId)
       },
-      getRealtimeData: function (imei, groupId) {
-          if (!this.isPending) {
-            this.isPending = true;
-            axiosPost({
-              url: getRealtimeDataUrl,
-              data: {
-                imei: imei
-              }
-            }).then(res => {
-              if (res.data.result === 200) {
-                AMap.convertFrom((res.data.data.lng + ',' + res.data.data.lat), "gps", (status, result) =>{
-
-                  if (status === "complete") {
-                    res.data.data.lng = result.locations[0].P;
-                    res.data.data.lat = result.locations[0].O;
-                  }
-                  let busData = JSON.parse(JSON.stringify(res.data.data));
-                  if (busData) {
-                    this.isPending = false;
-                    this.$store.commit('setBusData', busData);
-                    this.$router.push('_blank');
-                    this.$router.replace({
-                      path: '/position/details',
-                      query: {
-                        'id': groupId,
-                        'imei': imei
-                      }
-                    })
-                  }
-                });
-
-              } else {
-                this.$alertWarning(res.response.data);
-                this.$closeFSLoading();
-                this.isPending = false;
-                this.$router.replace('/position');
-              }
-              this.isPending = false;
-            }).catch(err => {
-              this.isPending = false;
-              this.$alertWarning(err);
-              this.$closeFSLoading();
-              this.$router.replace('/position');
-            })
+      showDetails: function (imei, groupId) {
+        this.$router.push('_blank');
+        this.$router.replace({
+          path: '/stats/details',
+          query: {
+            'id': groupId,
+            'imei': imei
           }
+        })
       }
     }
   }
@@ -174,7 +126,7 @@
     height: 100%;
   }
 
-  .el-aside{
+  .el-aside {
     box-shadow: 0 0 5px #ddd;
   }
 
@@ -200,7 +152,7 @@
 
   .status-remarks {
     position: relative;
-    display:  flex;
+    display: flex;
     min-height: 40px;
     border-top: 1px solid #ddd;
     margin-top: auto;
@@ -208,6 +160,7 @@
     justify-content: space-around;
     align-items: center;
   }
+
   .status-remarks div {
     display: flex;
     flex-direction: column;
@@ -215,22 +168,27 @@
     align-items: center;
     width: 71px;
   }
-  .status-circle  {
+
+  .status-circle {
     height: 12px;
     width: 12px;
     border-radius: 6px;
   }
+
   .status-remarks div p {
     margin: 0;
   }
+
   .green {
     background-color: greenyellow;
     color: greenyellow;
   }
+
   .grey {
     background-color: grey;
     color: grey;
   }
+
   .red {
     background-color: red;
     color: red;
@@ -265,13 +223,16 @@
     min-width: unset;
 
   }
-  .menu-title >>> .el-menu-item .status-circle{
+
+  .menu-title >>> .el-menu-item .status-circle {
     display: inline-block;
     margin: 0 10px;
   }
-  .menu-title >>> .el-menu-item.is-active{
+
+  .menu-title >>> .el-menu-item.is-active {
     background-color: #f5f5f5;
   }
+
   .num-plate {
     display: inline-block;
     line-height: initial;

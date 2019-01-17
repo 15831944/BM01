@@ -1,26 +1,25 @@
 <template>
   <div id="main-sidebar">
     <el-menu
-        :default-active="activeIndex"
         class="sidebar"
         :router="true"
-        :collapse="true">
+        :collapse="false">
       <el-menu-item index="/position">
-        <i class="el-icon-location" style="color: #049fdb;"></i>
+        <i class="el-icon-location" :class="{isChosed: isChosed('position')}"></i>
         <span slot="title">车辆定位</span>
       </el-menu-item>
-      <!--  <el-submenu index="/operations">
-          <template slot="title">
-            <i class="el-icon-setting"></i>
-            <span>烧写操作管理</span>
-          </template>
-          <el-menu-item index="/operations/default">操作管理表</el-menu-item>
-          <el-menu-item index="/operations/bind">版本操作绑定表</el-menu-item>
-        </el-submenu>
-        <el-menu-item index="/users" v-if="this.$store.state.userType > 2">
-          <i class="el-icon-t-users"></i>
-          <span slot="title">用户管理</span>
-        </el-menu-item>-->
+      <el-menu-item index="/monitor">
+        <i class="el-icon-t-monitor" :class="{isChosed: isChosed('monitor')}"></i>
+        <span slot="title">视频监控</span>
+      </el-menu-item>
+      <el-menu-item index="/stats">
+        <i class="el-icon-t-table" :class="{isChosed: isChosed('stats')}"></i>
+        <span slot="title">数据统计</span>
+      </el-menu-item>
+      <el-menu-item index="/schedule">
+        <i class="el-icon-t-date" :class="{isChosed: isChosed('schedule')}"></i>
+        <span slot="title">职员排班</span>
+      </el-menu-item>
     </el-menu>
 
     <div class="setting">
@@ -47,34 +46,17 @@
       }
     },
     watch: {
-      $route: function (val) {
-        this.activeIndex = val.path
-      }
     },
     mounted() {
-      this.activeIndex = this.$route.path
+    },
+    computed: {
+
     },
     methods: {
-     /* logout: function () {
-        let options = {
-          url: logoutUrl,
-          data: {}
-        };
-        axiosPost(options).then(res => {
-          if (res.data.result === 200 || res.data.result === 400) {
-            store.commit('setLoginToken', '');
-            store.commit('setUserType', '');
-            localStorage.removeItem('token');
-            localStorage.removeItem('userType');
-            window.location.href = window.g.SYSTEM_PATH + '/#/login'
-          } else {
-            this.$alertDanger(res.data.result)
-          }
-        }).catch(err => {
-          console.log(JSON.stringify(err));
-        })
+      isChosed: function (val) {
+        return this.$route.path.split('/')[1] === val
 
-      }*/
+      }
     }
   }
 </script>
@@ -118,5 +100,8 @@
     font-size: 16px;
     display: block;
     color: #aaa;
+  }
+  .isChosed {
+    color: #409EFF;
   }
 </style>
